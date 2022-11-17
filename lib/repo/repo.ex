@@ -99,7 +99,7 @@ defmodule ExAudit.Repo do
         if tracked?(struct) do
           ExAudit.Schema.insert(
             __MODULE__,
-            repo(),
+            repo,
             struct,
             Ecto.Repo.Supervisor.tuplet(repo, prepare_opts(:insert, opts))
           )
