@@ -5,12 +5,12 @@ defmodule ExAudit.CustomData do
   ETS table that stores custom data for pids
   """
 
-  def start_link() do
+  def start_link([]) do
     GenServer.start_link(__MODULE__, nil, name: __MODULE__)
   end
 
   def init(nil) do
-    ets = :ets.new(:track_by_pid, [:public])
+    ets = :ets.new(__MODULE__, [:protected, :named_table])
     {:ok, ets}
   end
 
@@ -24,23 +24,9 @@ defmodule ExAudit.CustomData do
     {:reply, :ok, ets}
   end
 
-  def handle_call({:get, pid}, _, ets) do
-    case :ets.lookup(ets, pid) do
-      [] ->
-        {:reply, [], ets}
-
-      list ->
-        values = Enum.flat_map(list, &elem(&1, 1))
-        {:reply, values, ets}
-    end
-  end
-
-  def get() do
-    GenServer.call(__MODULE__, {:get, self()})
-  end
-
-  def get(pid) do
-    GenServer.call(__MODULE__, {:get, pid})
+  def get(pid \\ self()) do
+    :ets.lookup(__MODULE__, pid)
+    |> Enum.flat_map(&elem(&1, 1))
   end
 
   def handle_info({:DOWN, _, :process, pid, _}, ets) do
